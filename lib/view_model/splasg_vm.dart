@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/services/base/base_model.dart';
 import '../model/services/localization/app_localization.dart';
-import '../view/pages/home.dart';
+import '../view/pages/home/home.dart';
 
 class SplashPageModel extends BaseModel {
   final BuildContext context;

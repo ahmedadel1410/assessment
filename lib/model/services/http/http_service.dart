@@ -100,4 +100,14 @@ class HttpService {
       return null;
     }
   }
+
+  getUsers(BuildContext context) async {
+    final res = await request(
+      context,
+      header: Headers.header,
+      endPoint: EndPoints.getUsers,
+      requestType: RequestType.Get,
+    );
+    return res;
+  }
 }

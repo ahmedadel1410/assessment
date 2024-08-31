@@ -19,5 +19,6 @@ class Headers {
 }
 
 class EndPoints {
-  static const serverUrl="";
+  static const serverUrl="https://jsonplaceholder.typicode.com/";
+  static const getUsers="posts";
 }
