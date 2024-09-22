@@ -1,9 +1,12 @@
 import 'package:assessment/view/styles/main_progress.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../view_model/home_vm.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
@@ -36,8 +39,12 @@ class HomePage extends StatelessWidget {
                   }
                   return ListTile(
                     title: Text(photos[index].title ?? ""),
-                    subtitle: Image.network(photos[index].thumbnailUrl ?? ""),
-                    leading: Text(photos[index].id.toString()),
+                    subtitle: CachedNetworkImage(
+                      imageUrl: photos[index].thumbnailUrl ?? "",
+                      placeholder: (context, url) => MainProgress(),
+                      errorWidget: (context, url, error) => Icon(Icons.error),
+                    ),
+                    leading: Text(photos[index].albumId.toString()),
                   );
                 },
               ),
