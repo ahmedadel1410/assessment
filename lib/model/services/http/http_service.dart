@@ -101,13 +101,16 @@ class HttpService {
     }
   }
 
-  getUsers(BuildContext context) async {
+  getPhotos(BuildContext context, {required Map<String, dynamic> queryParams}) async {
     final res = await request(
       context,
       header: Headers.header,
-      endPoint: EndPoints.getUsers,
+      endPoint: EndPoints.getPhotos,
       requestType: RequestType.Get,
+      queryParams: queryParams
     );
+
     return res;
   }
+
 }

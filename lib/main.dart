@@ -1,58 +1,25 @@
-import 'dart:io';
-import 'package:assessment/view/pages/splash_page.dart';
+import 'package:assessment/view/pages/home.dart';
+import 'package:assessment/view_model/home_vm.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'model/services/core_helper/preference.dart';
-import 'model/services/core_helper/size_config.dart';
-import 'model/services/localization/app_localization.dart';
-import 'model/services/provider/provider_setup.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart'; // Import MultiProvider
 
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  HttpOverrides.global = MyHttpOverrides();
-  await Preference.initialize();
-
-  runApp(const MyApp());
+void main() {
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return OrientationBuilder(builder: (context, orientation) {
-        SizeConfig().initialize(constraints, orientation);
-        return MultiProvider(
-          providers: providers,
-          child: Consumer<AppLanguage>(
-            builder: (context, language, _) => MaterialApp(
-              title: 'assessment',
-              debugShowCheckedModeBanner: true,
-              home: const SplashPage(),
-              locale: language.appLocale,
-              supportedLocales: const [
-                Locale("en"),
-                Locale("ar"),
-              ],
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-            ),
-          ),
-        );
-      });
-    });
-  }
-}
-class MyHttpOverrides extends HttpOverrides{
-  @override
-  HttpClient createHttpClient(SecurityContext? context){
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+    return MaterialApp(
+      title: 'MVVM with BLoC',
+      home: MultiProvider(
+        providers: [
+          BlocProvider(create: (context) => HomeCubit(context: context)),
+          // BlocProvider(create: (context) => AnotherCubit()), // Add more providers here
+        ],
+        child: HomePage(),
+      ),
+    );
   }
 }

@@ -1,71 +1,95 @@
-import 'package:assessment/view/styles/app_colors.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:assessment/model/models/photo.dart';
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import '../model/models/user.dart';
-import '../model/services/base/base_model.dart';
-import '../model/services/localization/app_localization.dart';
 import '../model/services/provider/provider_setup.dart';
 
-class HomeModel extends BaseModel {
-
+class HomeCubit extends Cubit<HomeState> {
   final BuildContext context;
-  late AppLocalizations locale;
-  String? selectedCountryFrom;
-  String? selectedCountryTo;
-  List<String> countries=["egypt","qatar","south" ,"arabia","sudan"];
-  List<String>  classes=["First","Economy","Premium", "Business"];
-  List<String>  travels=["1 adult","2 adults","3 adults" ,"4 adults","5 adults"];
-  String? selectedTravels;
-  String? selectedClass;
-  DateTime? selectedDayFrom;
-  DateTime? selectedDayTo;
-  String? formattedFrom;
-  String? formattedTo;
-  List<User> users=[];
-  HomeModel({required this.context}) {
-    locale = AppLocalizations.of(context);
+  List<Photo> photos = [];
+  ScrollController scrollController = ScrollController();
+  int start = 0;
+  int limit = 10;
+  bool isLoadingMore = false;
+
+  HomeCubit({required this.context}) : super(HomeInitial()) {
+    scrollController.addListener(_onScroll);
+    getPhotos(); // Load initial photos
   }
 
-
-
-
-
-
-
-
-
- getUsers() async {
-   setBusy();
-   final res = await api.getUsers(context);
-  for(var e in res){
-    User user=User.fromJson(e);
-    users.add(user);
+  Future<void> getPhotos({bool isMore = false}) async {
+    if (isMore) {
+      isLoadingMore = true;
+      emit(PhotoLoadingMore(photos));  // Emit a specific loading state for loading more data
+    } else {
+      photos = [];
+      emit(PhotoLoading());
+    }
+    try {
+      final res = await api.getPhotos(
+        context,
+        queryParams: {
+          "_start": "$start",
+          "_limit": "$limit",
+        },
+      );
+      List<Photo> newPhotos = res.map<Photo>((e) => Photo.fromJson(e)).toList();
+      if (isMore) {
+        photos.addAll(newPhotos);
+      } else {
+        photos = newPhotos;
+      }
+      start += limit;
+      emit(PhotoLoaded(photos));
+    } catch (e) {
+      emit(PhotoError('Failed to fetch photos'));
+    } finally {
+      isLoadingMore = false;
+    }
   }
-  showDialog(context: context, builder: (context){
-   return  Dialog(
-     child: Container(
-       padding: const EdgeInsets.all(16),
-       alignment: Alignment.center,
-       decoration: BoxDecoration(
-         color: AppColors.primaryColor,
-         borderRadius: BorderRadius.circular(16),
-         
-       ),
-       height: 200,
-       width: 200,
-       child: const Text("100 user fetched check home_vm",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w800,fontSize: 22),),
-     ),
 
-   );
+  void _onScroll() {
+    if (scrollController.position.extentAfter < 200) {
+      if (!isLoadingMore) {
+        getPhotos(isMore: true);
+      }
+    }
+  }
 
-  },
-    barrierDismissible: false
-  );
-   Future.delayed(const Duration(seconds: 2),(){
-Navigator.of(context).pop();
-   });
-   setIdle() ;
- }
+  @override
+  Future<void> close() {
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
+    return super.close();
+  }
+}
 
+abstract class HomeState extends Equatable {
+  @override
+  List<Object> get props => [];
+}
+
+class HomeInitial extends HomeState {}
+
+class PhotoLoading extends HomeState {}
+
+class PhotoLoaded extends HomeState {
+  final List<Photo> photos;
+  PhotoLoaded(this.photos);
+  @override
+  List<Object> get props => [photos];
+}
+
+class PhotoLoadingMore extends HomeState {
+  final List<Photo> photos;
+  PhotoLoadingMore(this.photos);
+  @override
+  List<Object> get props => [photos];
+}
+
+class PhotoError extends HomeState {
+  final String message;
+  PhotoError(this.message);
+  @override
+  List<Object> get props => [message];
 }
