@@ -42,7 +42,7 @@ class MainTextField extends StatelessWidget {
   final Function(String? x)? onChanged;
 
   const MainTextField({
-    Key? key,
+    super.key,
     this.controller,
     this.hint,
     this.label,
@@ -67,7 +67,7 @@ class MainTextField extends StatelessWidget {
     this.onSubmit,
     this.onChanged,
     this. onTapOutSide
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

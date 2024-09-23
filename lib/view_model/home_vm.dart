@@ -7,20 +7,18 @@ import '../model/services/provider/provider_setup.dart';
 class HomeCubit extends Cubit<HomeState> {
   final BuildContext context;
   List<Photo> photos = [];
-  ScrollController scrollController = ScrollController();
-  int start = 0;
+  int currentPage = 1;
   int limit = 10;
   bool isLoadingMore = false;
 
   HomeCubit({required this.context}) : super(HomeInitial()) {
-    scrollController.addListener(_onScroll);
-    getPhotos(); // Load initial photos
+    getPhotos();
   }
 
   Future<void> getPhotos({bool isMore = false}) async {
     if (isMore) {
       isLoadingMore = true;
-      emit(PhotoLoadingMore(photos));  // Emit a specific loading state for loading more data
+      emit(PhotoLoadingMore(photos));
     } else {
       photos = [];
       emit(PhotoLoading());
@@ -29,17 +27,17 @@ class HomeCubit extends Cubit<HomeState> {
       final res = await api.getPhotos(
         context,
         queryParams: {
-          "_start": "$start",
+          "_page": "$currentPage",
           "_limit": "$limit",
         },
       );
       List<Photo> newPhotos = res.map<Photo>((e) => Photo.fromJson(e)).toList();
+
       if (isMore) {
         photos.addAll(newPhotos);
       } else {
         photos = newPhotos;
       }
-      start += limit;
       emit(PhotoLoaded(photos));
     } catch (e) {
       emit(PhotoError('Failed to fetch photos'));
@@ -48,20 +46,30 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  void _onScroll() {
-    if (scrollController.position.extentAfter < 200) {
-      if (!isLoadingMore) {
-        getPhotos(isMore: true);
-      }
+  void getNextPage() {
+    currentPage++;
+    getPhotos();
+  }
+
+  void getPreviousPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      getPhotos();
     }
   }
 
-  @override
-  Future<void> close() {
-    scrollController.removeListener(_onScroll);
-    scrollController.dispose();
-    return super.close();
+  void sortPhotosByIdDescending() {
+    emit(PhotoLoading());
+    photos.sort((a, b) => b.id!.compareTo(a.id!));
+        emit(PhotoLoaded(photos));
   }
+  void filterPhotosByAlbumId(int albumId) {
+    emit(PhotoLoading());
+
+    final filteredPhotos = photos.where((photo) => photo.albumId == albumId).toList();
+    emit(PhotoLoaded(filteredPhotos));
+  }
+
 }
 
 abstract class HomeState extends Equatable {
@@ -75,6 +83,7 @@ class PhotoLoading extends HomeState {}
 
 class PhotoLoaded extends HomeState {
   final List<Photo> photos;
+
   PhotoLoaded(this.photos);
   @override
   List<Object> get props => [photos];

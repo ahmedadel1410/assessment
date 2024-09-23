@@ -5,7 +5,6 @@ class AppColors {
   static  const background = Color(0xFFF4F4F4);
   static  const formFill =   Color(0xFFffffff);
   static  const buttonColor =   Color(0xFFEAA121);
-  static  const formFill2 =   Color(0xFF14003759);
 
 
 

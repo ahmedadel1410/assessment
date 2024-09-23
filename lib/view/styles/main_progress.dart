@@ -15,14 +15,14 @@ class MainProgress extends StatelessWidget {
   final double? linearWidth;
 
   const MainProgress({
-    Key? key,
+    super.key,
     this.color = AppColors.primaryColor,
     this.stroke = 4,
     this.diameter = 30,
     this.height = 4,
     this.linearWidth,
     this.type = ProgressType.circular,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

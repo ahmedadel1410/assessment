@@ -33,6 +33,7 @@ class Preference {
 
       return await sharedPref!.clear();
     } catch (error) {
+      // ignore: avoid_print
       print(error);
     }
     return null;
